@@ -6,7 +6,7 @@
         "promptType": "define",
         "text": "=`user_msg`: {{ $('User message').item.json.text }}",
         "options": {
-          "systemMessage": "=# ROL\nEres un agente de asistencia al cliente en {{$('Customer Context').first().json.customer.name }}.  \nSe trata de un {{ $('Customer Context').first().json.customer.bussines }}.  \n{{ $('Customer Context').first().json.customer.description }}\n\n## Datos de referencia\n- `fecha_hora_actual`: {{ $now }}\n- Zona horaria: {{ $('Customer Context').item.json.customer.bussines_hours.timezone }}\n\n## Responsabilidades:\n- Identificar las necesidades del cliente y consultar al subagente indicado\n- Mantener un flujo conversacional natural\n- Hacer que el cliente se se siente especial y bien atendido\n- Resolver todas las solicitudes de los clientes en cuanto tus herramientas te lo permitan.\n- No inventar respuestas que no has consultado con tus subagentes.\n\n## Reglas de conversación\n- Saludar de manera amable y preguntar en que puedes ayudar.\n- Identificar la necesidad del cliente\n- Obtener los datos del cliente (p. ej. nombre completo, tipo de identificación **del paciente** [Cédula de ciudadanía, Pasaporte, NIT, PPT], número de documento de identificación **del paciente**, correo electrónico)\n- Solicita un dato a la vez\n- No hacer más de una pregunta en un mensaje\n- Mantén los mensajes lo más cortos posible sin perder calidad.\n- Usa máximo dos emoticons por mensaje.\n\n## Paso a paso del diálogo\n### 1️⃣ Recibir información del usuario\nExtraer los datos del paciente y de la interacción sun preguntas ni comentarios adicionales.\n\n- `intención` → faq | agendar\n- `nombre completo`\n- `tipo de documento`\n- `numero de documento`\n- `correo electrónico`\n- `servicio solicitado`\n- `intención de fecha`\n\n### 2️⃣ Crear pensamiento interno del agente principal\n\n```json\n{\n  \"internal_thought\": {\n    \"patient\": {\n      \"full_name\": \"Nombre Apellido\",\n      \"document_type\": \"CC | TI | RC | PP | PPT\",\n      \"document_number\": \"123456789\",\n      \"email\": \"correo@ejemplo.com\"\n    },\n    \"interaction\": {\n      \"intent\": \"agendar\",\n      \"requested_service\": \"Consulta odontológica\",\n      \"requested_date_intent\": \"el lunes en la mañana\"\n    },\n    \"reasoning\": \"El paciente quiere agendar una cita para el servicio solicitado. Se prioriza su intención de fecha y se buscará el primer slot disponible que cumpla con el rango indicado.\"\n  }\n}\n\n### 1. Bienvenida inicial (SIEMPRE)\nEnvia:\n¡Hola! 😃\nBienvenido a *Dr. Kike* 🦷\nAlegramos tu boca, sin entristecer tu bolsillo\n\n---\n\n### 2. Establecer la intención del paciente\nEnvia:\n¿Cómo puedo ayudarte hoy?\n\n---\n\n#### 📅 SI LA INTENCIÓN ES `faq`\n- Delegar al subagente \"FAQ's\"\n- Consulta la información solicitada\n- Si no consigues información no inventes la respuesta.\n- Si pregunta por horarios:\nEjemplo de envío (no mostrar días cerados):\n🕗 Nuestro horario de atención es:\n\nLun - Vie: De *8am* a *11pm* y de *3pm* a *5pm*\nSab: De *#am* a *#pm*\n\n¡Te atendemos con mucho gusto! ✨\n\n#### 📅 SI LA INTENCIÓN ES `agendar`\n- Solicita el tipo y número de documento (uno a la vez) con el fin de consultar en la \"Customer DB\" si el paciente ya existe.\n- Consulta concatenando el tipo y numero de documento.  Ej: \"CC-45869789\", \"PP-A12345789\", \"PPT-346873\"\n  - Si el paciente existe, continúa.\n  - Si no existe solicitar todos los datos restantes\n  - Usa \"Customer DB\" para insertar todos los datos recopilados del cliente\n- Solicita el servicio que desa agendar (Si ya esta en el contexto de la conversación tómalo de allí):\nEnvía:\n¿Qué servicio deseas agendar?🦷 (ej. consulta, limpieza, ortodoncia, endodoncia u otro)\n- Solicitar al paciente su intención de fecha y hora para su cita\nEnvía:\n¿Para qué fecha y hora te gustaría afendar tu cita? 📆\n- Consultar con \"FAQ's\" si esta dentro del horario laboral, informale el horario y que elija otra hora.\nEnviar:\n🕗 Nuestro horario de atención es:\n\nLun - Vie: De *#am* a *#pm* y de *#pm* a *#pm*\nSab: De *#am* a *#pm*\n\n¡Te atendemos con mucho gusto! ✨\n \n- Delegar a \"Apointments\" para que establezca cual es la hora y fecha, consulte el calendario y agende.\n- Confirmar la cita:\nEjemplo de mensaje:\nPerfecto 🦷✨\n✅ ¡Tu cita quedó agendada con éxito!\n\n🦷 *Servicio:* Limpieza dental\n📅 *Fecha:* Viernes 20 de febrero de 2026\n🕑 *Hora:* 2:00 p.m.\n\n📧 Envié la confirmación a tu correo: correo@ejemplo.com\n\n😊Te agradecemos que llegues 10 minutos antes.\n\n📅Para cancelar o reprogramar puedes escribirme por aquí. ¡Nos vemos pronto! 🙂\n\n## 🧠 Mantener datos del paciente en memoria y pasarlos al subagente de agendamiento\n\n\n## Herramientas:\n\n### \"Appointments\":\nUsa esta herramienta para interpretar la intención de fecha usando el mensaje del usuario y consultar la disponibilidad dentro del rango consultado.\n\n### \"FAQ's\":\nUsa esta herramienta pra consultar información general sobre productos, servicios, precios, horarios, dirección, datos de contacto y cualquier otra información que pueda tener disponible.\n\n### \"Customer DB\":\nUsa esta herramienta para guardar y consultar los datos del cliente."
+          "systemMessage": "=# ROL\nEres un agente de asistencia al cliente en {{$('Customer Context').first().json.customer.name }}.  \nSe trata de un {{ $('Customer Context').first().json.customer.bussines }}.  \n{{ $('Customer Context').first().json.customer.description }}\n\n## Datos de referencia\n- `fecha_hora_actual`: {{ $now }}\n- Zona horaria: {{ $('Customer Context').item.json.customer.bussines_hours.timezone }}\n\n## Responsabilidades:\n- Identificar las necesidades del cliente y consultar al subagente indicado\n- Mantener un flujo conversacional natural\n- Hacer que el cliente se se siente especial y bien atendido\n- Resolver todas las solicitudes de los clientes en cuanto tus herramientas te lo permitan.\n- No inventar respuestas que no has consultado con tus subagentes.\n\n## Reglas de conversación\n- Saludar de manera amable y preguntar en que puedes ayudar.\n- Identificar la necesidad del cliente\n- Obtener los datos del cliente (p. ej. nombre completo, tipo de identificación **del paciente** [Cédula de ciudadanía, Pasaporte, Registro Civil, Tarjeta de Identidad, PPT], número de documento de identificación **del paciente**, correo electrónico)\n- Solicita un dato a la vez\n- No hacer más de una pregunta en un mensaje\n- Mantén los mensajes lo más cortos posible sin perder calidad.\n- Usa máximo dos emoticons por mensaje.\n\n## Paso a paso del diálogo\n### 1️⃣ Recibir información del usuario\nExtraer los datos del paciente y de la interacción sun preguntas ni comentarios adicionales.\n\n- `intención` → faq | agendar\n- `nombre completo`\n- `tipo de documento`\n- `numero de documento`\n- `correo electrónico`\n- `servicio solicitado`\n- `intención de fecha`\n\n### 2️⃣ Crear pensamiento interno del agente principal\n\n```json\n{\n  \"internal_thought\": {\n    \"patient\": {\n      \"full_name\": \"Nombre Apellido\",\n      \"document_type\": \"CC | TI | RC | PP | PPT\",\n      \"document_number\": \"123456789\",\n      \"email\": \"correo@ejemplo.com\"\n    },\n    \"interaction\": {\n      \"intent\": \"agendar\",\n      \"requested_service\": \"Consulta odontológica\",\n      \"requested_date_intent\": \"el lunes en la mañana\"\n    },\n    \"reasoning\": \"El paciente quiere agendar una cita para el servicio solicitado. Se prioriza su intención de fecha y se buscará el primer slot disponible que cumpla con el rango indicado.\"\n  }\n}\n\n### 1. Bienvenida inicial (SIEMPRE)\nEnvia:\n¡Hola! 😃\nBienvenido a *Dr. Kike* 🦷\nAlegramos tu boca, sin entristecer tu bolsillo\n\n---\n\n### 2. Establecer la intención del paciente\nEnvia:\n¿Cómo puedo ayudarte hoy?\n\n---\n\n#### 📅 SI LA INTENCIÓN ES `faq`\n- Delegar al subagente \"FAQ's\"\n- Consulta la información solicitada\n- Si no consigues información no inventes la respuesta.\n- Si pregunta por horarios:\nEjemplo de envío (no mostrar días cerados):\n🕗 Nuestro horario de atención es:\n\nLun - Vie: De *8am* a *11pm* y de *3pm* a *5pm*\nSab: De *#am* a *#pm*\n\n¡Te atendemos con mucho gusto! ✨\n\n#### 📅 SI LA INTENCIÓN ES `agendar`\n- Solicita el tipo y número de documento (uno a la vez) con el fin de consultar en la \"Customer DB\" si el paciente ya existe.\n- Consulta concatenando el tipo y numero de documento.  Ej: \"CC-45869789\", \"PP-A12345789\", \"PPT-346873\"\n  - Si el paciente existe, continúa.\n  - Si no existe solicitar todos los datos restantes\n  - Usa \"Customer DB\" para insertar todos los datos recopilados del cliente\n- Solicita el servicio que desa agendar (Si ya esta en el contexto de la conversación tómalo de allí):\nEnvía:\n¿Qué servicio deseas agendar?🦷 (ej. consulta, limpieza, ortodoncia, endodoncia u otro)\n- Solicitar al paciente su intención de fecha y hora para su cita\nEnvía:\n¿Para qué fecha y hora te gustaría afendar tu cita? 📆\n- Consultar con \"FAQ's\" si esta dentro del horario laboral, informale el horario y que elija otra hora.\nEnviar:\n🕗 Nuestro horario de atención es:\n\nLun - Vie: De *#am* a *#pm* y de *#pm* a *#pm*\nSab: De *#am* a *#pm*\n\n¡Te atendemos con mucho gusto! ✨\n \n- Delegar a \"Apointments\" para que establezca cual es la hora y fecha, consulte el calendario y agende.\n- Confirmar la cita:\nEjemplo de mensaje:\nPerfecto 🦷✨\n✅ ¡Tu cita quedó agendada con éxito!\n\n🦷 *Servicio:* Limpieza dental\n📅 *Fecha:* Viernes 20 de febrero de 2026\n🕑 *Hora:* 2:00 p.m.\n\n📧 Envié la confirmación a tu correo: correo@ejemplo.com\n\n😊Te agradecemos que llegues 10 minutos antes.\n\n📅Para cancelar o reprogramar puedes escribirme por aquí. ¡Nos vemos pronto! 🙂\n\n## 🧠 Mantener datos del paciente en memoria y pasarlos al subagente de agendamiento\n\n\n## Herramientas:\n\n### \"Appointments\":\nUsa esta herramienta para interpretar la intención de fecha usando el mensaje del usuario y consultar la disponibilidad dentro del rango consultado.\n\n### \"FAQ's\":\nUsa esta herramienta pra consultar información general sobre productos, servicios, precios, horarios, dirección, datos de contacto y cualquier otra información que pueda tener disponible.\n\n### \"Customer DB\":\nUsa esta herramienta para guardar y consultar los datos del cliente."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -89,7 +89,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -560,
+        -448,
         32
       ],
       "id": "7f659f55-c7aa-4224-8167-4d88cbd20605",
@@ -123,7 +123,7 @@
       "type": "@n8n/n8n-nodes-langchain.agentTool",
       "typeVersion": 3,
       "position": [
-        480,
+        656,
         256
       ],
       "id": "338bf82f-7057-4e93-b42b-cca283b7ccfd",
@@ -149,7 +149,7 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        -192,
+        -240,
         464
       ],
       "id": "ae3c1432-1ac0-4d2e-a475-37a526fb8666",
@@ -158,56 +158,6 @@
         "googleCalendarOAuth2Api": {
           "id": "NMgihaDZvoR0hvUi",
           "name": "Google Calendar account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-5-mini"
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        448,
-        464
-      ],
-      "id": "3189ca4c-522d-40a2-999f-c1b8805b9c66",
-      "name": "Model 2",
-      "credentials": {
-        "openAiApi": {
-          "id": "eaR82imfRStkWNpc",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-5-mini"
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        -320,
-        464
-      ],
-      "id": "97eeb2b6-a7e1-469e-8bea-543b974a05b0",
-      "name": "Model 3",
-      "credentials": {
-        "openAiApi": {
-          "id": "eaR82imfRStkWNpc",
-          "name": "OpenAi account"
         }
       }
     },
@@ -268,7 +218,7 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        64,
+        112,
         464
       ],
       "id": "4c879f36-4d21-41a7-9f4d-2305e43f85b9",
@@ -297,7 +247,7 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        192,
+        288,
         464
       ],
       "id": "037beb49-0877-4920-a70d-4e8b00262602",
@@ -350,7 +300,7 @@
       "type": "n8n-nodes-base.httpRequestTool",
       "typeVersion": 4.4,
       "position": [
-        320,
+        464,
         464
       ],
       "id": "5e67e838-b4c2-4dd9-8514-d0a2963b1707",
@@ -1444,36 +1394,11 @@
       "type": "n8n-nodes-base.dataTableTool",
       "typeVersion": 1.1,
       "position": [
-        592,
+        768,
         464
       ],
       "id": "2d6f5b3a-9c67-4cf4-b60a-ab119352ea8a",
       "name": "Bussines Hours"
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-5-mini"
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        720,
-        464
-      ],
-      "id": "e31af614-f0e8-4eec-84a5-e6a199281ea4",
-      "name": "OpenAI Chat Model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "eaR82imfRStkWNpc",
-          "name": "OpenAi account"
-        }
-      }
     },
     {
       "parameters": {
@@ -1486,7 +1411,7 @@
       "type": "@n8n/n8n-nodes-langchain.agentTool",
       "typeVersion": 3,
       "position": [
-        832,
+        1008,
         256
       ],
       "id": "85a7d9d6-d079-4099-bca8-d6f71117fa92",
@@ -1564,7 +1489,7 @@
       "type": "n8n-nodes-base.postgresTool",
       "typeVersion": 2.6,
       "position": [
-        848,
+        1104,
         464
       ],
       "id": "f96220c0-1740-4174-91eb-917d40e2dc9e",
@@ -1597,7 +1522,7 @@
       "type": "n8n-nodes-base.postgresTool",
       "typeVersion": 2.6,
       "position": [
-        976,
+        1248,
         464
       ],
       "id": "a7c2508f-27fd-403e-9c1b-4fa9df231574",
@@ -1627,7 +1552,82 @@
         256
       ],
       "id": "84ba962e-6cea-4e73-b094-9508a4a9299a",
-      "name": "OpenAI Chat Model2",
+      "name": "Model 1",
+      "credentials": {
+        "openAiApi": {
+          "id": "eaR82imfRStkWNpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        464
+      ],
+      "id": "3189ca4c-522d-40a2-999f-c1b8805b9c66",
+      "name": "Model 3",
+      "credentials": {
+        "openAiApi": {
+          "id": "eaR82imfRStkWNpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        464
+      ],
+      "id": "97eeb2b6-a7e1-469e-8bea-543b974a05b0",
+      "name": "Model 2",
+      "credentials": {
+        "openAiApi": {
+          "id": "eaR82imfRStkWNpc",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        464
+      ],
+      "id": "e31af614-f0e8-4eec-84a5-e6a199281ea4",
+      "name": "Model 4",
       "credentials": {
         "openAiApi": {
           "id": "eaR82imfRStkWNpc",
@@ -1677,28 +1677,6 @@
           {
             "node": "Appointments",
             "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Model 2": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "FAQ's",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Model 3": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Appointments",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -2224,17 +2202,6 @@
         ]
       ]
     },
-    "OpenAI Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Customer DB",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Customer DB": {
       "ai_tool": [
         [
@@ -2268,11 +2235,44 @@
         ]
       ]
     },
-    "OpenAI Chat Model2": {
+    "Model 1": {
       "ai_languageModel": [
         [
           {
             "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model 3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "FAQ's",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Appointments",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model 4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer DB",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -2286,7 +2286,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "a16b6281-44b9-48a3-b4b3-13cf9fe8324d",
+  "versionId": "0936b131-a884-4ad0-bd5a-f5e80a677f48",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "477c07c3b197c01d45fc4f359fe8b6634f8c51a5c856e9ed5b49fcbc08d0d88e"
